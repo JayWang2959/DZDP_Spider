@@ -22,9 +22,9 @@ class SqlDB:
         :return:
         """
 
-        sql = "INSERT INTO restaurants (shop_id, shop_name, food_type, address, review_count, avg_price, taste_points, env_points, service_points)" \
-              "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" \
-              % (shop['shop_id'], shop['shop_name'], shop['food_type'], shop['address'], shop['review_count'],
+        sql = "INSERT INTO restaurants (shop_id, shop_name, food_type, region, address, review_count, avg_price, taste_points, env_points, service_points)" \
+              "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" \
+              % (shop['shop_id'], shop['shop_name'], shop['food_type'], shop['region'], shop['address'], shop['review_count'],
                  shop['avg_price'], shop['taste_points'], shop['env_points'],
                  shop['service_points'])
 
