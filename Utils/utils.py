@@ -1,6 +1,8 @@
 """
 通用工具
 """
+import json
+import time
 import requests
 import random
 from lxml import etree
@@ -64,7 +66,7 @@ def check_ip(ip):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'
     }
 
-    ip_url = '://' + ip['address'] + ':' + ip['port']
+    ip_url = '://' + ip['ip'] + ':' + ip['port']
     proxies = {'http': 'http' + ip_url, 'https': 'https' + ip_url}
     # print(ip_url)
     try:
@@ -101,7 +103,7 @@ def get_ref():
 
 
 def get_proxies(ip):
-    ip_url = '://' + ip['address'] + ':' + ip['port']
+    ip_url = '://' + ip['ip'] + ':' + str(ip['port'])
     proxies = {'http': 'http' + ip_url, 'https': 'https' + ip_url}
     return proxies
 
@@ -113,8 +115,8 @@ def get_font():
     汉字使用的是 8e65e977.woff 文件
     :return: 加密字体映射表
     """
-    font_num = TTFont('64c220e4.woff')
-    font_word = TTFont('8e65e977.woff')
+    font_num = TTFont('../50819d54.woff')
+    font_word = TTFont('../50819d54.woff')
     font_num_keys = font_num.getGlyphOrder()
     font_word_keys = font_word.getGlyphOrder()
     texts = ['', ''] + [i for i in woff_string if i != '\n' and i != ' ']
@@ -127,3 +129,66 @@ def get_font():
         font_word_dict[b] = value
 
     return font_num_dict, font_word_dict
+
+
+class GetHtml:
+    def __init__(self):
+        self.load_ip()
+
+    def load_ip(self):
+        # 可用ip列表
+        with open('../Utils/available_ip.json', 'r') as f:
+            ips = json.load(f)
+        self.available_ip_list = ips['data']
+
+    def get_html_zhimaip(self, url):
+        if not self.available_ip_list:
+            print('waiting')
+            self.load_ip()
+            print(self.available_ip_list)
+
+        while True:
+            if self.available_ip_list:
+                ip = random.choice(self.available_ip_list)
+                break
+            time.sleep(.1)
+
+        proxies = get_proxies(ip)
+        ua = get_ua()
+        ref = get_ref()
+
+        headers = {
+            "User-Agent": ua,
+            "Referer": ref,
+        }
+
+        while True:
+            try:
+                request = requests.get(url=url, headers=headers, proxies=proxies, timeout=3)
+            except:
+                request_status = 500
+            else:
+                request_status = request.status_code
+
+            if request_status != 200:
+                print(request_status)
+                if ip in self.available_ip_list:
+                    self.available_ip_list.remove(ip)
+                if not self.available_ip_list:
+                    print('waiting for proxies')
+                    self.load_ip()
+                    print(self.available_ip_list)
+
+                while True:
+                    if self.available_ip_list:
+                        ip = random.choice(self.available_ip_list)
+                        break
+                    time.sleep(.1)
+                proxies = get_proxies(ip)
+            else:
+                html = request.text
+                return html
+
+
+if __name__ == '__main__':
+    get_font()
